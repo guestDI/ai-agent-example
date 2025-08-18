@@ -30,6 +30,7 @@ if (!openAPIKey) {
   throw new Error("Missing OPENAI_API_KEY env var");
 }
 
+// --- Dictionary with coordinates ---
 const CITY_COORDS = {
   wroclaw: { lat: 51.1079, lon: 17.0385 },
   warsaw: { lat: 52.2297, lon: 21.0122 },
@@ -41,8 +42,10 @@ const CITY_COORDS = {
   london: { lat: 51.5074, lon: -0.1278 },
 };
 
+// Helper
 const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
+// --- Local "tool": call Open-Meteo ---
 async function getWeather({ city }) {
   const key = (city || "").trim().toLowerCase();
   const coords = CITY_COORDS[key];
@@ -58,6 +61,7 @@ async function getWeather({ city }) {
   }
   const data = await res.json();
 
+  // Get arrays with dates and temperatures
   const time = data?.daily?.time || [];
   const tmin = data?.daily?.temperature_2m_min || [];
   const tmax = data?.daily?.temperature_2m_max || [];
@@ -75,6 +79,7 @@ async function getWeather({ city }) {
   return `7-day forecast for ${cap(city)}:\n` + lines.join("\n");
 }
 
+// --- Main endpoint ---
 fastify.post("/agent", async (req, reply) => {
   try {
     const { message } = req.body || {};
@@ -82,6 +87,7 @@ fastify.post("/agent", async (req, reply) => {
       return reply.code(400).send({ error: "message is required" });
     }
 
+    // 1) First call: model decides, if "tool" is needed
     const first = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -125,10 +131,12 @@ fastify.post("/agent", async (req, reply) => {
 
     const firstMsg = first?.choices?.[0]?.message;
 
+    // Check if model decided to call a "tool"
     const toolCalls = firstMsg?.tool_calls || [];
     if (toolCalls.length > 0) {
       const toolMessages = [];
 
+      // Execute all called functions
       for (const call of toolCalls) {
         if (call?.function?.name === "getWeather") {
           let args = {};
@@ -136,6 +144,8 @@ fastify.post("/agent", async (req, reply) => {
             args = JSON.parse(call.function.arguments || "{}");
           } catch {}
           const result = await getWeather(args);
+
+          // Add answer from a "tool" to a list of messages
           toolMessages.push({
             role: "tool",
             tool_call_id: call.id,
@@ -144,6 +154,7 @@ fastify.post("/agent", async (req, reply) => {
         }
       }
 
+      // 2) Second call: give a result from "tool" to a model, to create final result
       const second = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -159,8 +170,8 @@ fastify.post("/agent", async (req, reply) => {
                 "You are a helpful assistant. When tools are used, compose a concise final answer for the user.",
             },
             { role: "user", content: message },
-            firstMsg, 
-            ...toolMessages, 
+            firstMsg, // message from model with a tool
+            ...toolMessages, // results of getWeather
           ],
         }),
       }).then((r) => r.json());
@@ -169,6 +180,7 @@ fastify.post("/agent", async (req, reply) => {
       return reply.send({ answer });
     }
 
+    // General response
     const fallback = firstMsg?.content || "";
     return reply.send({ answer: fallback });
   } catch (err) {
