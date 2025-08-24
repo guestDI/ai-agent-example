@@ -21,7 +21,8 @@ export default function App() {
         id="prompt-input"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="border p-2 w-full"
+        className="text-gray w-full border border-gray-300 rounded-lg p-3 mb-4 bg-white 
+    text-black"
         placeholder="Ask: What is the weather in Wroclaw?"
       />
       <button 

@@ -1,0 +1,4 @@
+Vue.js is a progressive JavaScript framework for building interfaces.
+Vue is focused on simplicity and flexibility.
+It combines declarative rendering with reactive data.
+Vue is especially popular due to its ease of learning and built-in capabilities for animation and reactivity.

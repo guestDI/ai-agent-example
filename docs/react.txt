@@ -1,0 +1,4 @@
+React is a popular library for building user interfaces.
+It was developed by Facebook and is based on the concept of components and virtual DOM.
+React allows you to efficiently update and render interfaces when data changes.
+Key concepts: JSX, components, props, state, and hooks.

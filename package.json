@@ -4,15 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 4545",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server/server.js"
+    "server": "node server/server.js",
+    "server-rag": "node server/server_rag.js"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "@fastify/env": "^5.0.2",
+    "@pinecone-database/pinecone": "^6.1.2",
     "@tailwindcss/vite": "^4.1.12",
     "fastify": "^5.5.0",
     "node-fetch": "^3.3.2",

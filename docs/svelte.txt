@@ -1,0 +1,4 @@
+Svelte is a modern JavaScript framework that differs from React and Vue in that
+it moves most of the work from the browser to the compilation stage.
+Instead of a virtual DOM, Svelte directly transforms components into highly efficient JavaScript code.
+Svelte is known for its small bundle size and high performance.
